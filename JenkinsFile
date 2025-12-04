@@ -1,10 +1,6 @@
 pipeline {
   agent any
 
-  tools {
-    nodejs 'NodeJS'
-  }
-
   environment {
     SONAR_TOKEN = credentials('sonar-token')
     VITE_OPENWEATHER_KEY = credentials('openweather-key')
