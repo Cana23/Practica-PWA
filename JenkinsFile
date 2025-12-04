@@ -1,9 +1,8 @@
 pipeline {
-  agent {
-    docker {
-      image 'node:18'
-      args '-u root:root'
-    }
+  agent any
+
+  tools {
+    nodejs 'NodeJS'
   }
 
   environment {
@@ -12,58 +11,33 @@ pipeline {
   }
 
   stages {
-
-    stage('Checkout') {
+    stage('Instalar dependencias') {
       steps {
-        checkout scm
-      }
-    }
-
-    stage('Install Dependencies') {
-      steps {
-        sh 'npm ci'
-      }
-    }
-
-    stage('Lint') {
-      steps {
-        sh 'npm run lint || true'
+        sh 'npm install'
       }
     }
 
     stage('Build') {
       steps {
-        export VITE_OPENWEATHER_KEY=$VITE_OPENWEATHER_KEY
-        sh 'npm run build'
+        sh '''
+          export VITE_OPENWEATHER_KEY=$VITE_OPENWEATHER_KEY
+          npm run build
+        '''
       }
     }
 
-    stage('SonarQube Analysis') {
+    stage('SonarQube') {
       steps {
-        sh """
-        npx sonar-scanner \
-          -Dsonar.projectKey=clima-pwa \
-          -Dsonar.projectName=Clima-PWA \
-          -Dsonar.sources=src \
-          -Dsonar.host.url=http://sonarqube:9000 \
-          -Dsonar.login=$SONAR_TOKEN
-        """
+        withSonarQubeEnv('SonarQube') {
+          sh '''
+            sonar-scanner \
+              -Dsonar.projectKey=clima-pwa \
+              -Dsonar.sources=src \
+              -Dsonar.host.url=http://localhost:9000 \
+              -Dsonar.login=$SONAR_TOKEN
+          '''
+        }
       }
-    }
-
-  }
-
-  post {
-    success {
-      echo '✅ Pipeline ejecutado correctamente'
-    }
-
-    failure {
-      echo '❌ El pipeline falló'
-    }
-
-    always {
-      cleanWs()
     }
   }
 }
