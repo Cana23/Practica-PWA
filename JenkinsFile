@@ -3,10 +3,11 @@ pipeline {
 
   environment {
     SONAR_TOKEN = credentials('sonar-token')
-    VITE_OPENWEATHER_KEY = credentials('openweather-key')
+    VERCEL_TOKEN = credentials('vercel-token')
   }
 
   stages {
+
     stage('Instalar dependencias') {
       steps {
         sh 'npm install'
@@ -14,15 +15,24 @@ pipeline {
     }
 
     stage('Build') {
+      when {
+        anyOf {
+          branch 'main'
+          branch 'develop'
+        }
+      }
       steps {
-        sh '''
-          export VITE_OPENWEATHER_KEY=$VITE_OPENWEATHER_KEY
-          npm run build
-        '''
+        sh 'npm run build'
       }
     }
 
     stage('SonarQube') {
+      when {
+        anyOf {
+          branch 'main'
+          branch 'develop'
+        }
+      }
       steps {
         withSonarQubeEnv('SonarQube') {
           sh '''
@@ -33,6 +43,18 @@ pipeline {
               -Dsonar.login=$SONAR_TOKEN
           '''
         }
+      }
+    }
+
+    stage('Deploy a Vercel (solo main)') {
+      when {
+        branch 'main'
+      }
+      steps {
+        sh '''
+          npm install -g vercel
+          vercel --prod --confirm --token=$VERCEL_TOKEN
+        '''
       }
     }
   }
