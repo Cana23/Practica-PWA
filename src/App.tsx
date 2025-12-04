@@ -41,7 +41,7 @@ export default function App() {
         {/* Footer */}
         <footer className="mt-8 text-center">
           <p className="text-white/40 text-sm">
-            Datos proporcionados por OpenWeatherMap • Actualizado en tiempo real
+            Datos proporcionados por OpenWeatherMap • Actualizado en tiempo real.
           </p>
         </footer>
       </div>
